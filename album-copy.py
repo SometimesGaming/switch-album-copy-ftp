@@ -10,6 +10,7 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 print("Author: SometimesGaming")
 print("Project: https://github.com/SometimesGaming/switch-album-copy-ftp")
 print("Reddit: https://old.reddit.com/user/SometimesGaming/")
+print()
 
 # download string from url
 def remoteGet(url):
@@ -44,7 +45,7 @@ def initArgs():
 		help="""Plug your switch FTP address here. No need for protocol but don't forget the port!
 	To find your IP check your router or use GoldLeaf.
 	Ex: 192.168.0.2:5000""")
-	argsParser.add_argument('-d', '--destination',  
+	argsParser.add_argument('-d', '--destination',  default="downloads",
 		help="""Folder where all files will be downloaded to on your PC.
 	Ex: downloads
 	Ex: C:\\switch\\album""")
@@ -65,16 +66,34 @@ def initArgs():
 args = initArgs()
 
 SOURCE = args.source
+if not SOURCE.startswith("ftp://"):
+	SOURCE = "ftp://" + SOURCE
 DESTINATION = args.destination
+if not DESTINATION.endswith("/") and not DESTINATION.endswith("\\"):
+	DESTINATION = DESTINATION + "/"
 EXTENSIONS = args.extensions
 OVERWRITE = args.overwrite
 DELETE_SOURCE = args.delete_source
 PATHS = args.paths
 
+print(f"Remote address: {SOURCE}")
+print(f"Destination path: {DESTINATION}")
+print()
+
+print("Connecting to remote")
+try:
+	getRemoteFileList(SOURCE)
+	print(f"Server online")
+except Exception:
+	print(f"Server inaccessible")
+	sys.exit()
+
+
 files = []
+print("Searching for files")
 for albumPath in PATHS:
-	remote = f"ftp://{SOURCE}{albumPath}"
-	print(f"Scanning album {remote}", end = "... ")
+	remote = f"{SOURCE}{albumPath}"
+	print(f"{remote}", end = "... ")
 	try:
 		remoteFiles = getRemoteFileList(remote)
 		files = files + remoteFiles
